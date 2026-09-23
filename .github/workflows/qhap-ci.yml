@@ -71,3 +71,5 @@ jobs:
 # CI trigger: AXI receiver timing fix verification
 
 # autonomous ingress CRC decision latch rerun
+
+# pipeline CRC decision rerun
