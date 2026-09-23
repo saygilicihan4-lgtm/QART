@@ -12,9 +12,8 @@ module qart_qhap_crc_stream(
   if(!rst_n) begin state<=32'hFFFFFFFF;ready<=0;end
   else begin
    ready<=0;
-   if(start) state<=32'hFFFFFFFF;
-   else if(beat_valid && beat_index<7) begin
-    next_state=state;
+   if(beat_valid && beat_index<7) begin
+    next_state = start ? 32'hFFFFFFFF : state;
     next_state=crc_byte(next_state,tdata[7:0]);
     next_state=crc_byte(next_state,tdata[15:8]);
     next_state=crc_byte(next_state,tdata[23:16]);
