@@ -16,7 +16,7 @@ jobs:
       - name: Install Verilator
         run: sudo apt-get update && sudo apt-get install -y verilator
       - name: RTL lint
-        run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_safety_assertions.sv
+        run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_safety_assertions.sv
       - name: QHAP 10k protocol fault campaign
         run: PYTHONPATH=. python tests/qhap_fault_campaign.py
       - name: Generate Python-to-RTL QHAP frame
@@ -26,6 +26,12 @@ jobs:
           rm -rf obj_dir
           verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qhap_command_chain rtl/qart_axis_frame_rx.sv rtl/qart_frame_guard.sv rtl_tb/tb_qhap_command_chain.sv
           ./obj_dir/Vtb_qhap_command_chain
+      - name: RTL QHAP streaming CRC simulation
+        run: |
+          PYTHONPATH=. python tests/generate_qhap_e2e.py
+          rm -rf obj_dir
+          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_qhap_crc_stream rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl_tb/tb_qart_qhap_crc_stream.sv
+          ./obj_dir/Vtb_qart_qhap_crc_stream
       - name: Integrated fail-closed ingress simulation
         run: |
           rm -rf obj_dir
