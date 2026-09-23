@@ -13,6 +13,8 @@ module tb_qart_frame_guard;
   channel=3;action=1;amplitude=16'h4000;duration=16'd100;crc_ok=1;
   check(1);
   crc_ok=0; check(0); crc_ok=1;
+  // Telemetry/ACK/fault frames are protocol-valid but must never authorize command execution.
+  kind=2; check(0); kind=3; check(0); kind=4; check(0); kind=1;
   seq=2; check(0); seq=1;
   channel=64; check(0); channel=3;
   action=3; check(0); action=1;
