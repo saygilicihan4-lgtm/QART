@@ -75,3 +75,5 @@ jobs:
 # pipeline CRC decision rerun
 
 # settled RTL CRC compare rerun
+
+# autonomous sequence-zero E2E rerun
