@@ -23,8 +23,14 @@ module tb_qhap_command_chain;
   expected_crc=mem[7];
   beat(mem[0],0);beat(mem[1],0);beat(mem[2],0);beat(mem[3],0);
   beat(mem[4],0);beat(mem[5],0);beat(mem[6],0);beat(mem[7],1);
-  // frame_valid/permit are combinationally observable during the final accepted beat.
-  if(!fv||!permit||fault) $fatal(1,"valid Python QHAP command was not permitted");
+  // beat() returns at the negedge immediately after the final accepting posedge.
+  // Sample the one-cycle frame_valid/permit pulse before the next posedge clears it.
+  #0;
+  if(!fv||!permit||fault) begin
+    $display("E2E fv=%0b permit=%0b fault=%0b magic=%08x ver=%0d kind=%0d seq=%0d ch=%0d act=%0d amp=%04x dur=%0d crc=%08x expcrc=%08x",
+      fv,permit,fault,magic,version,kind,seq,channel,action,amplitude,duration,crc_received,expected_crc);
+    $fatal(1,"valid Python QHAP command was not permitted");
+  end
   $display("QHAP_E2E_COMMAND_CHAIN_PASS");$finish;
  end
  logic [31:0] mem[0:7];
