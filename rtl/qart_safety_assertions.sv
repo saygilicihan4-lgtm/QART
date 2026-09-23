@@ -8,7 +8,7 @@ module qart_safety_assertions(
  property permit_implies_valid;
   @(posedge clk) disable iff(!rst_n)
   permit |-> (frame_valid && magic==32'h51484150 && version==8'd2 &&
-             kind inside {[1:4]} && crc_ok && seq==expected_seq &&
+             kind==8'd1 && crc_ok && seq==expected_seq &&
              channel<64 && action<=2 && amplitude<=16'h7fff && duration>=1);
  endproperty
  property fault_blocks_permit;
