@@ -8,7 +8,7 @@ module tb_qart_qhap_ingress_top;
   for(integer i=0;i<8;i++)sendbeat(mem[i],i==7);
   // CRC stream serializes bytes, so allow it to settle before a second replay probe.
   repeat(8)@(posedge clk);
-  if(expected_seq!==1)$fatal(1,"valid Python frame did not advance sequence: %0d",expected_seq);
+  $display("AUTONOMOUS_DEBUG expseq=%0d permit=%0b fault=%0b noop=%0b fp=%0b crcdone=%0b crcready=%0b rxv=%0b rxf=%0b crccalc=%08x crcword=%08x magic=%08x seq=%0d kind=%0d",expected_seq,permit,fault,safe_noop,dut.frame_pending,dut.crc_done_latched,dut.crc_ready,dut.rx_valid,dut.rx_fault,dut.crc_calc,dut.crc_word_latched,dut.magic,dut.seq,dut.kind); if(expected_seq!==1)$fatal(1,"valid Python frame did not advance sequence: %0d",expected_seq);
   // Replay exact sequence 0: must never advance state.
   for(integer i=0;i<8;i++)sendbeat(mem[i],i==7);
   repeat(8)@(posedge clk);if(expected_seq!==1)$fatal(1,"replay advanced sequence");
