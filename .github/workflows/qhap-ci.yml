@@ -26,3 +26,5 @@ jobs:
           rm -rf obj_dir
           verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_axis_frame_rx rtl/qart_axis_frame_rx.sv rtl_tb/tb_qart_axis_frame_rx.sv
           ./obj_dir/Vtb_qart_axis_frame_rx
+
+# CI trigger: AXI receiver timing fix verification
