@@ -13,7 +13,7 @@ module qart_frame_guard(
 always_comb begin
  permit=1'b0; fault=1'b1;
  if(valid && magic==32'h51484150 && version==8'd2 &&
-    kind>=1 && kind<=4 && crc_ok && seq==expected_seq &&
+    kind==8'd1 && crc_ok && seq==expected_seq &&
     channel<64 && action<=2 && amplitude<=16'h7fff && duration>=1) begin
    permit=1'b1; fault=1'b0;
  end
