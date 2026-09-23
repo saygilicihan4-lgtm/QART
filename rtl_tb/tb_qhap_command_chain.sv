@@ -31,6 +31,19 @@ module tb_qhap_command_chain;
       fv,permit,fault,magic,version,kind,seq,channel,action,amplitude,duration,crc_received,expected_crc);
     $fatal(1,"valid Python QHAP command was not permitted");
   end
+
+  // Negative-path checks at the execution gate: every invalid condition must fail closed.
+  expected_crc=mem[7]^32'h00000001; #1;
+  if(permit||!fault) $fatal(1,"CRC corruption was not fail-closed");
+  expected_crc=mem[7]; #1;
+  force seq=32'd8; #1; if(permit||!fault) $fatal(1,"sequence mismatch was not fail-closed"); release seq;
+  force channel=16'd64; #1; if(permit||!fault) $fatal(1,"channel bound was not fail-closed"); release channel;
+  force action=16'd3; #1; if(permit||!fault) $fatal(1,"action bound was not fail-closed"); release action;
+  force amplitude=16'h8000; #1; if(permit||!fault) $fatal(1,"amplitude bound was not fail-closed"); release amplitude;
+  force duration=16'd0; #1; if(permit||!fault) $fatal(1,"duration bound was not fail-closed"); release duration;
+  force kind=8'd2; #1; if(permit||!fault) $fatal(1,"telemetry frame reached command path"); release kind;
+  force kind=8'd3; #1; if(permit||!fault) $fatal(1,"ack frame reached command path"); release kind;
+  force kind=8'd4; #1; if(permit||!fault) $fatal(1,"fault frame reached command path"); release kind;
   $display("QHAP_E2E_COMMAND_CHAIN_PASS");$finish;
  end
  logic [31:0] mem[0:7];
