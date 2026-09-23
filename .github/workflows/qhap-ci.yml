@@ -1,7 +1,7 @@
 name: QHAP CI
 on:
   push:
-    paths: ["hardware/**","tests/**","rtl/**",".github/workflows/qhap-ci.yml"]
+    paths: ["hardware/**","tests/**","rtl/**","rtl_tb/**",".github/workflows/qhap-ci.yml"]
   pull_request:
     paths: ["hardware/**","tests/**","rtl/**"]
 jobs:
