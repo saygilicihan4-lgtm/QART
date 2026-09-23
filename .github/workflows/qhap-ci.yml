@@ -69,3 +69,5 @@ jobs:
           ./obj_dir/Vtb_qart_axis_frame_rx
 
 # CI trigger: AXI receiver timing fix verification
+
+# autonomous ingress CRC decision latch rerun
