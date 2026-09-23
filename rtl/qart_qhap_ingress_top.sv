@@ -4,15 +4,16 @@ module qart_qhap_ingress_top #(parameter integer WATCHDOG_CYCLES=32)(
  output logic permit,output logic fault,output logic safe_noop,output logic[31:0]expected_seq
 );
  logic fv,ff;logic[31:0]magic,seq,crc_received,p0,p1;logic[7:0]version,kind;logic[15:0]flags,channel,action,amplitude,duration;
- logic[2:0] beat_count; logic crc_start,crc_feed; logic[31:0]crc_calc; logic crc_match_latched;
- qart_axis_frame_rx rx(.aclk(clk),.aresetn(rst_n),.s_axis_tdata(s_axis_tdata),.s_axis_tkeep(s_axis_tkeep),.s_axis_tvalid(s_axis_tvalid),.s_axis_tready(s_axis_tready),.s_axis_tlast(s_axis_tlast),.frame_valid(fv),.frame_fault(ff),.magic(magic),.seq(seq),.crc_received(crc_received),.version(version),.kind(kind),.flags(flags),.channel(channel),.action(action),.amplitude(amplitude),.duration(duration),.payload0(p0),.payload1(p1));
+ logic[2:0] beat_count; logic crc_start,crc_feed; logic[31:0]crc_calc; logic crc_match_latched; logic frame_pending;
+ qart_axis_frame_rx rx(.aclk(clk),.aresetn(rst_n),.s_axis_tdata(s_axis_tdata),.s_axis_tkeep(s_axis_tkeep),.s_axis_tvalid(s_axis_tvalid),.s_axis_tready(s_axis_tready),.s_axis_tlast(s_axis_tlast),.frame_valid(frame_pending),.frame_fault(ff),.magic(magic),.seq(seq),.crc_received(crc_received),.version(version),.kind(kind),.flags(flags),.channel(channel),.action(action),.amplitude(amplitude),.duration(duration),.payload0(p0),.payload1(p1));
  always_ff @(posedge clk) begin
-  if(!rst_n) begin beat_count<=0;crc_start<=0;crc_feed<=0;crc_match_latched<=0;end else begin
+  if(!rst_n) begin beat_count<=0;crc_start<=0;crc_feed<=0;
+   if(frame_pending) frame_pending<=0;crc_match_latched<=0;frame_pending<=0;end else begin
    crc_start<=0;crc_feed<=0;
    if(s_axis_tvalid&&s_axis_tready) begin
     if(beat_count==0) begin crc_start<=1; crc_match_latched<=0; end
     if(beat_count<7) crc_feed<=1;
-    if(beat_count==7 && s_axis_tlast) crc_match_latched <= (s_axis_tdata==crc_calc);
+    if(beat_count==7 && s_axis_tlast) begin crc_match_latched <= (s_axis_tdata==crc_calc); frame_pending<=1; end
     if(s_axis_tlast||ff) beat_count<=0; else beat_count<=beat_count+1'b1;
    end
   end
