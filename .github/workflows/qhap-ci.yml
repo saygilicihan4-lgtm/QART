@@ -1,0 +1,19 @@
+name: QHAP CI
+on:
+  push:
+    paths: ["hardware/**","tests/**","rtl/**",".github/workflows/qhap-ci.yml"]
+  pull_request:
+    paths: ["hardware/**","tests/**","rtl/**"]
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Golden binary-frame tests
+        run: python tests/generate_qhap_vectors.py
+      - name: Install Verilator
+        run: sudo apt-get update && sudo apt-get install -y verilator
+      - name: RTL lint
+        run: verilator --lint-only -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_safety_assertions.sv
