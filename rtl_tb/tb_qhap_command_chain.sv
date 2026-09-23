@@ -23,6 +23,7 @@ module tb_qhap_command_chain;
   expected_crc=mem[7];
   beat(mem[0],0);beat(mem[1],0);beat(mem[2],0);beat(mem[3],0);
   beat(mem[4],0);beat(mem[5],0);beat(mem[6],0);beat(mem[7],1);
+  // frame_valid/permit are combinationally observable during the final accepted beat.
   if(!fv||!permit||fault) $fatal(1,"valid Python QHAP command was not permitted");
   $display("QHAP_E2E_COMMAND_CHAIN_PASS");$finish;
  end
