@@ -26,6 +26,12 @@ jobs:
           rm -rf obj_dir
           verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qhap_command_chain rtl/qart_axis_frame_rx.sv rtl/qart_frame_guard.sv rtl_tb/tb_qhap_command_chain.sv
           ./obj_dir/Vtb_qhap_command_chain
+      - name: Autonomous QHAP ingress end-to-end simulation
+        run: |
+          PYTHONPATH=. python tests/generate_qhap_e2e.py
+          rm -rf obj_dir
+          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_qhap_ingress_top rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_axis_frame_rx.sv rtl/qart_frame_guard.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv rtl_tb/tb_qart_qhap_ingress_top.sv
+          ./obj_dir/Vtb_qart_qhap_ingress_top
       - name: RTL QHAP streaming CRC simulation
         run: |
           PYTHONPATH=. python tests/generate_qhap_e2e.py
