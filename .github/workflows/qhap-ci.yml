@@ -73,3 +73,5 @@ jobs:
 # autonomous ingress CRC decision latch rerun
 
 # pipeline CRC decision rerun
+
+# settled RTL CRC compare rerun
