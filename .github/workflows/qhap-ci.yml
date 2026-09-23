@@ -18,7 +18,7 @@ jobs:
       - name: RTL lint
         run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_safety_assertions.sv
       - name: Generate Python-to-RTL QHAP frame
-        run: PYTHONPATH=. python tests/generate_qhap_e2e.py # regenerate endian-correct AXI words
+        run: PYTHONPATH=. python tests/generate_qhap_e2e.py # e2e diagnostics rerun
       - name: Python-to-RTL command-chain simulation
         run: |
           rm -rf obj_dir
