@@ -17,6 +17,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y verilator
       - name: RTL lint
         run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_safety_assertions.sv
+      - name: Generate Python-to-RTL QHAP frame
+        run: python tests/generate_qhap_e2e.py
+      - name: Python-to-RTL command-chain simulation
+        run: |
+          rm -rf obj_dir
+          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qhap_command_chain rtl/qart_axis_frame_rx.sv rtl/qart_frame_guard.sv rtl_tb/tb_qhap_command_chain.sv
+          ./obj_dir/Vtb_qhap_command_chain
       - name: CRC-32 executable equivalence test
         run: |
           rm -rf obj_dir
