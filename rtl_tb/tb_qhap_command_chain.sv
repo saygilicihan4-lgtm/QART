@@ -13,7 +13,7 @@ module tb_qhap_command_chain;
  assign crc_ok=(crc_received==expected_crc);
  qart_frame_guard gate(.valid(fv),.magic(magic),.version(version),.kind(kind),.seq(seq),
  .channel(channel),.action(action),.amplitude(amplitude),.duration(duration),.crc_ok(crc_ok),
- .expected_seq(32'd7),.permit(permit),.fault(fault));
+ .expected_seq(32'd0),.permit(permit),.fault(fault));
  task beat(input [31:0] x,input bit l); begin
   @(negedge clk);d=x;v=1;last=l; @(negedge clk);v=0;last=0;
  end endtask
