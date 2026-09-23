@@ -15,6 +15,19 @@ module tb_qart_qhap_ingress_top;
   // Malformed AXI keep must not advance state.
   @(negedge clk);d=mem[0];keep=4'h7;v=1;last=0;@(negedge clk);v=0;keep=4'hf;repeat(4)@(posedge clk);
   if(expected_seq!==1)$fatal(1,"malformed AXI advanced sequence");
+  // Corrupt payload without repairing CRC: must fail closed.
+  mem[5]=mem[5]^32'h00000001;
+  for(integer i=0;i<8;i++)sendbeat(mem[i],i==7);
+  repeat(8)@(posedge clk);if(expected_seq!==1)$fatal(1,"payload corruption advanced sequence");
+  mem[5]=mem[5]^32'h00000001;
+  // Early TLAST must never authorize a partial frame.
+  for(integer i=0;i<4;i++)sendbeat(mem[i],i==3);
+  repeat(8)@(posedge clk);if(expected_seq!==1)$fatal(1,"early TLAST advanced sequence");
+  // Sequence gap: rewrite seq word only; CRC becomes invalid too and must fail closed.
+  mem[2]=32'd2;
+  for(integer i=0;i<8;i++)sendbeat(mem[i],i==7);
+  repeat(8)@(posedge clk);if(expected_seq!==1)$fatal(1,"sequence gap advanced sequence");
+  mem[2]=32'd0;
   $display("QART_QHAP_AUTONOMOUS_INGRESS_PASS");$finish;
  end
 endmodule
