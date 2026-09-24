@@ -2,27 +2,36 @@
 
 Status: PRE-HARDWARE / NOT BOARD-VERIFIED.
 
-The first host transport boundary is intentionally split into two layers:
-
-1. **Host/PS producer** supplies one 32-bit QHAP word plus `keep`, `last`, and `valid`.
-2. **QHAP word bridge** converts that producer handshake into the existing AXI-stream ingress contract.
-
-This keeps QHAP safety logic independent from Linux, DMA, PCIe, Ethernet, or a specific Zynq PS software stack.
+The selected host transport boundary is AXI4-Stream. The ZCU111 wrapper exposes a Vivado-recognizable `S_AXIS` interface so a later Zynq PS block design can feed QHAP through AXI DMA or equivalent stream infrastructure without changing the safety core.
 
 ## Transfer contract
 
-A QHAP frame is exactly eight accepted 32-bit beats. The host must preserve the Python-generated little-endian word order and assert `host_last` only on beat 7. `host_keep` must be `4'hF` for every beat.
+A QHAP frame is exactly eight accepted 32-bit beats:
 
-The bridge has a one-word elastic register. It may accept a new word on the same cycle that the previous word is consumed. If a producer violates backpressure by asserting a write while the bridge is unable to accept it, `overflow_fault` becomes sticky. The board integration layer must OR that condition into the fail-closed fault/safe-NOOP path before physical execution is enabled.
+- `TDATA`: Python-generated little-endian 32-bit QHAP word
+- `TKEEP`: `4'hF` on every beat
+- `TLAST`: asserted only on beat 7
+- `TVALID/TREADY`: normal AXI4-Stream backpressure contract
 
-## Next physical layer
+The one-word bridge can accept a new word while the previous word is consumed. A producer that violates backpressure causes a sticky transport fault, and the integrated FPGA boundary ORs that fault into global `fault` and `safe_noop`.
 
-The selected ZCU111 implementation should connect this logical producer to a PS-accessible transport (for example AXI DMA/AXI Stream infrastructure). That integration is not yet claimed as built or measured.
+## Intended PS path
 
-Before enabling physical pulse execution:
+The intended first bring-up path is:
 
-- replay the Python golden QHAP frame through the PS/PL path;
-- verify CRC and expected-sequence advancement;
-- inject malformed keep/TLAST, replay, CRC corruption and host loss;
-- require safe NOOP on every rejected case;
-- measure end-to-end host-to-PL latency and jitter.
+`Linux/PS memory -> AXI DMA/stream producer -> ZCU111 S_AXIS -> QHAP bridge -> CRC/protocol guard -> sequence guard -> watchdog -> permit/safe-NOOP`
+
+The PS/DMA block design is not yet physically built or measured. The AXI interface annotations only establish the synthesizable integration boundary.
+
+## Bring-up sequence
+
+1. Keep physical pulse execution disconnected.
+2. Send the Python golden QHAP frame through the PS/PL stream path.
+3. Require expected sequence to advance exactly once.
+4. Replay the same frame and require rejection.
+5. Inject bad `TKEEP`, early/missing `TLAST`, CRC corruption and sequence gaps.
+6. Stop host traffic and require watchdog safe-NOOP.
+7. Measure host-to-PL latency and jitter.
+8. Only after those gates pass, connect DAC/ADC or I/Q loopback.
+
+No deterministic-latency or hardware-verified claim is permitted before the physical measurements.
