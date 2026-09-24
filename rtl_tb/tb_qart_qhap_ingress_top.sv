@@ -28,6 +28,10 @@ module tb_qart_qhap_ingress_top;
   for(integer i=0;i<8;i++)sendbeat(mem[i],i==7);
   repeat(8)@(posedge clk);if(expected_seq!==1)$fatal(1,"sequence gap advanced sequence");
   mem[2]=32'd0;
+  // Host-loss watchdog: after silence, execution must remain fail-closed.
+  repeat(80) @(posedge clk);
+  if(!fault || !safe_noop) $fatal(1,"watchdog silence did not force fail-closed safe NOOP");
+  if(expected_seq!==1) $fatal(1,"watchdog silence changed sequence state");
   $display("QART_QHAP_AUTONOMOUS_INGRESS_PASS");$finish;
  end
 endmodule
