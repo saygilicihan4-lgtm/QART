@@ -5,7 +5,7 @@ module tb_qart_axil_control;
  logic[1:0]bresp;logic bvalid,bready=1;
  logic arvalid=0,arready;logic[31:0]rdata;logic[1:0]rresp;logic rvalid,rready=1;
  logic arm,clear_fault,resync;logic[31:0]resync_value;
- logic[31:0]status_flags=32'h0000000e,expected_seq=32'h12345678;
+ logic[31:0]status_flags=32'h0000000e,expected_dataed_seq=32'h12345678;
 
  always #1 clk=~clk;
  qart_axil_control dut(
@@ -16,7 +16,7 @@ module tb_qart_axil_control;
   .s_axil_araddr(araddr),.s_axil_arvalid(arvalid),.s_axil_arready(arready),
   .s_axil_rdata(rdata),.s_axil_rresp(rresp),.s_axil_rvalid(rvalid),.s_axil_rready(rready),
   .arm(arm),.clear_fault(clear_fault),.resync(resync),.resync_value(resync_value),
-  .status_flags(status_flags),.expected_seq(expected_seq)
+  .status_flags(status_flags),.expected_dataed_seq(expected_dataed_seq)
  );
 
  task wr(input[5:0]a,input[31:0]d,input[3:0]s);
@@ -28,13 +28,13 @@ module tb_qart_axil_control;
    if(bresp!==0)$fatal(1,"write SLVERR addr=%h",a);
   end
  endtask
- task rd(input[5:0]a,input[31:0]expect);
+ task rd(input[5:0]a,input[31:0]expected_data);
   begin
    @(negedge clk);araddr=a;arvalid=1;
    while(!arready) @(negedge clk);
    @(negedge clk);arvalid=0;
    while(!rvalid) @(negedge clk);
-   if(rresp!==0 || rdata!==expect)$fatal(1,"read mismatch addr=%h got=%h expect=%h",a,rdata,expect);
+   if(rresp!==0 || rdata!==expected_data)$fatal(1,"read mismatch addr=%h got=%h expected_data=%h",a,rdata,expected_data);
   end
  endtask
 
