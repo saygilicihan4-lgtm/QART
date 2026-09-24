@@ -21,7 +21,12 @@ module qart_qhap_word_bridge(
    full<=0;m_axis_tdata<=0;m_axis_tkeep<=0;m_axis_tlast<=0;overflow_fault<=0;
    stall_active<=0;stall_data<=0;stall_keep<=0;stall_last<=0;
   end else begin
-   if(clear_fault) overflow_fault<=0;
+   if(clear_fault && !violation) begin
+    overflow_fault<=0;
+    // Explicit recovery also abandons any remembered malformed stalled
+    // transaction. The source must present a fresh beat after recovery.
+    stall_active<=0;
+   end
    if(violation) overflow_fault<=1; // violation wins over simultaneous clear
 
    // AXI backpressure is legal. Snapshot the first stalled beat and require
