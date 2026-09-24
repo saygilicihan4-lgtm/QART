@@ -19,7 +19,8 @@ module qart_qhap_host_fpga_top #(
  output logic        fault,
  output logic        safe_noop,
  output logic        transport_fault,
- output logic [31:0] expected_seq
+ output logic [31:0] expected_seq,
+ output logic [31:0] status_flags
 );
  logic rst_n_sync;
  logic [31:0] axis_data;
@@ -72,4 +73,8 @@ module qart_qhap_host_fpga_top #(
  assign permit = core_permit && !transport_fault;
  assign fault = core_fault || transport_fault;
  assign safe_noop = core_safe_noop || transport_fault;
+
+ // Stable PS/ILA status ABI: bit0 permit, bit1 fault, bit2 safe_noop,
+ // bit3 transport_fault, bit4 armed. Remaining bits reserved zero.
+ assign status_flags = {27'd0, arm, transport_fault, safe_noop, fault, permit};
 endmodule
