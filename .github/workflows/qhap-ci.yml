@@ -21,6 +21,15 @@ jobs:
           PYTHONPATH=. python fpga/host/prepare_qhap_dma.py --output /tmp/qhap_dma_frame.bin
           test "$(stat -c%s /tmp/qhap_dma_frame.bin)" -eq 32
           cmp /tmp/qhap_dma_frame.bin <(xxd -r -p <<< "504148510201000000000000030001000040640044332211887766551d19bb67")
+      - name: Physical bring-up vector and status ABI contract
+        run: |
+          rm -rf build/bringup_vectors
+          PYTHONPATH=. python fpga/host/generate_bringup_vectors.py
+          test "$(find build/bringup_vectors -name '*.bin' | wc -l)" -eq 5
+          python -c 'import json; m=json.load(open("build/bringup_vectors/manifest.json")); assert len(m)==5; assert all(x["bytes"]==32 for x in m); assert sum(x["protocol_valid"] for x in m)==3'
+          grep -q "status_flags" fpga/rtl/qart_qhap_host_fpga_top.sv
+          grep -q "expected_seq" fpga/STATUS_ABI.md
+          grep -q "safe_noop" fpga/STATUS_ABI.md
       - name: Golden binary-frame tests
         run: python tests/generate_qhap_vectors.py
       - name: Install Verilator
