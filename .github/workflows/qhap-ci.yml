@@ -11,6 +11,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
+      - name: PS/DMA transport contract
+        run: |
+          test -s fpga/vivado/create_zcu111_ps_dma.tcl
+          grep -q "axi_dma" fpga/vivado/create_zcu111_ps_dma.tcl
+          grep -q "axis_clock_converter" fpga/vivado/create_zcu111_ps_dma.tcl
+          grep -q "M_AXIS_MM2S" fpga/vivado/create_zcu111_ps_dma.tcl
+          grep -q "S_AXI_HP0_FPD" fpga/vivado/create_zcu111_ps_dma.tcl
+          PYTHONPATH=. python fpga/host/prepare_qhap_dma.py --output /tmp/qhap_dma_frame.bin
+          test "$(stat -c%s /tmp/qhap_dma_frame.bin)" -eq 32
+          cmp /tmp/qhap_dma_frame.bin <(xxd -r -p <<< "504148510201000000000000030001000040640044332211887766551d19bb67")
       - name: Golden binary-frame tests
         run: python tests/generate_qhap_vectors.py
       - name: Install Verilator
