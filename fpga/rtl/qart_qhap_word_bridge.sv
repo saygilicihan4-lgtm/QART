@@ -1,6 +1,7 @@
 module qart_qhap_word_bridge(
  input  logic        clk,
  input  logic        rst_n,
+ input  logic        clear_fault,
 
  // Host/PS-side write interface. One accepted write is one QHAP 32-bit AXI beat.
  input  logic        host_valid,
@@ -31,6 +32,9 @@ module qart_qhap_word_bridge(
    m_axis_tlast<=1'b0;
    overflow_fault<=1'b0;
   end else begin
+   if(clear_fault)
+    overflow_fault<=1'b0;
+
    if(host_valid && !host_ready)
     overflow_fault<=1'b1;
 
