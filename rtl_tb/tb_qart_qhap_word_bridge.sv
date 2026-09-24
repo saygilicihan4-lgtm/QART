@@ -1,5 +1,5 @@
 module tb_qart_qhap_word_bridge;
- logic clk=0,rst_n=0;
+ logic clk=0,rst_n=0,clear_fault=0;
  logic host_valid=0,host_ready,host_last=0;
  logic[31:0]host_data=0,m_axis_tdata;
  logic[3:0]host_keep=4'hf,m_axis_tkeep;
@@ -8,7 +8,7 @@ module tb_qart_qhap_word_bridge;
  always #1 clk=~clk;
 
  qart_qhap_word_bridge dut(
-  .clk(clk),.rst_n(rst_n),
+  .clk(clk),.rst_n(rst_n),.clear_fault(clear_fault),
   .host_valid(host_valid),.host_ready(host_ready),.host_data(host_data),.host_keep(host_keep),.host_last(host_last),
   .m_axis_tdata(m_axis_tdata),.m_axis_tkeep(m_axis_tkeep),.m_axis_tvalid(m_axis_tvalid),
   .m_axis_tready(m_axis_tready),.m_axis_tlast(m_axis_tlast),.overflow_fault(overflow_fault)
@@ -30,6 +30,12 @@ module tb_qart_qhap_word_bridge;
   @(posedge clk);
   if(!overflow_fault)$fatal(1,"backpressure violation did not latch overflow fault");
   if(m_axis_tdata!==32'h11223344)$fatal(1,"overflow corrupted retained word");
+
+  // Explicit operator clear must recover the sticky transport fault.
+  @(negedge clk);clear_fault=1;
+  @(negedge clk);clear_fault=0;
+  @(posedge clk);
+  if(overflow_fault)$fatal(1,"overflow fault did not clear explicitly");
 
   // Consume retained word.
   @(negedge clk);m_axis_tready=1;
