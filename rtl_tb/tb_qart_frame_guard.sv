@@ -20,7 +20,24 @@ module tb_qart_frame_guard;
   action=3; check(0); action=1;
   amplitude=16'h8000; check(0); amplitude=16'h4000;
   duration=0; check(0); duration=100;
-  magic=0; check(0);
+  magic=0; check(0); magic=32'h51484150;
+  // Deterministic RTL fault campaign: 10,000 invalid command states must all fail closed.
+  for(integer i=0;i<10000;i++) begin
+    valid=1;version=2;kind=1;seq=32'd1;expected_seq=32'd1;channel=3;action=1;amplitude=16'h4000;duration=100;crc_ok=1;
+    case(i%8)
+      0: crc_ok=0;
+      1: seq=32'd2+(i/8);
+      2: channel=16'd64+(i%128);
+      3: action=16'd3+(i%8);
+      4: amplitude=16'h8000|(i&16'h7fff);
+      5: duration=0;
+      6: kind=8'd2+(i%3);
+      7: magic=32'h51484150 ^ (32'h1 << (i%32));
+    endcase
+    check(0);
+    magic=32'h51484150;
+  end
+  $display("QART_FRAME_GUARD_10K_FAULT_CAMPAIGN_PASS");
   $display("QART_FRAME_GUARD_TEST_PASS"); $finish;
  end
 endmodule
