@@ -21,11 +21,6 @@ jobs:
           PYTHONPATH=. python fpga/host/prepare_qhap_dma.py --output /tmp/qhap_dma_frame.bin
           test "$(stat -c%s /tmp/qhap_dma_frame.bin)" -eq 32
           cmp /tmp/qhap_dma_frame.bin <(xxd -r -p <<< "504148510201000000000000030001000040640044332211887766551d19bb67")
-      - name: AXI-Lite control/status register simulation
-        run: |
-          rm -rf obj_dir
-          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_axil_control fpga/rtl/qart_axil_control.sv rtl_tb/tb_qart_axil_control.sv
-          ./obj_dir/Vtb_qart_axil_control
       - name: Physical bring-up vector and status ABI contract
         run: |
           rm -rf build/bringup_vectors
@@ -39,6 +34,11 @@ jobs:
         run: python tests/generate_qhap_vectors.py
       - name: Install Verilator
         run: sudo apt-get update && sudo apt-get install -y verilator
+      - name: AXI-Lite control/status register simulation
+        run: |
+          rm -rf obj_dir
+          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_axil_control fpga/rtl/qart_axil_control.sv rtl_tb/tb_qart_axil_control.sv
+          ./obj_dir/Vtb_qart_axil_control
       - name: RTL lint
         run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv rtl/qart_safety_assertions.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_fpga_top.sv fpga/rtl/qart_qhap_host_fpga_top.sv
       - name: Install Yosys
