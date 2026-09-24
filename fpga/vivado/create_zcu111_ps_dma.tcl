@@ -46,3 +46,11 @@ validate_bd_design
 save_bd_design
 
 puts "QART_PS_DMA_TRANSPORT_BD_PASS"
+
+
+# QHAP AXI-Lite control/status bank. This IP is expected to be packaged from
+# fpga/rtl/qart_axil_control.sv or instantiated in the generated HDL wrapper.
+# The PS control path and DMA control path share the PS AXI master; QHAP command
+# data remains on the independent AXI-Stream path above.
+puts "QART_CONTROL_PLANE_REQUIRED=qart_axil_control"
+puts "QART_PS_DMA_TRANSPORT_BD_PASS"
