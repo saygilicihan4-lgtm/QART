@@ -10,12 +10,18 @@ module qart_zcu111_top #(
  input  logic        resync,
  input  logic [31:0] resync_value,
 
- // Logical PS/host producer boundary. A later PS block design supplies these signals.
- input  logic        host_valid,
- output logic        host_ready,
- input  logic [31:0] host_data,
- input  logic [3:0]  host_keep,
- input  logic        host_last,
+ // AXI4-Stream command ingress. Intended source: Zynq PS via AXI DMA/stream infrastructure.
+ (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 S_AXIS TDATA" *)
+ (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_AXIS, TDATA_NUM_BYTES 4, HAS_TKEEP 1, HAS_TLAST 1" *)
+ input  logic [31:0] s_axis_tdata,
+ (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 S_AXIS TKEEP" *)
+ input  logic [3:0]  s_axis_tkeep,
+ (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 S_AXIS TVALID" *)
+ input  logic        s_axis_tvalid,
+ (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 S_AXIS TREADY" *)
+ output logic        s_axis_tready,
+ (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 S_AXIS TLAST" *)
+ input  logic        s_axis_tlast,
 
  output logic        permit,
  output logic        fault,
@@ -41,11 +47,11 @@ module qart_zcu111_top #(
   .clear_fault(clear_fault),
   .resync(resync),
   .resync_value(resync_value),
-  .host_valid(host_valid),
-  .host_ready(host_ready),
-  .host_data(host_data),
-  .host_keep(host_keep),
-  .host_last(host_last),
+  .host_valid(s_axis_tvalid),
+  .host_ready(s_axis_tready),
+  .host_data(s_axis_tdata),
+  .host_keep(s_axis_tkeep),
+  .host_last(s_axis_tlast),
   .permit(permit),
   .fault(fault),
   .safe_noop(safe_noop),
