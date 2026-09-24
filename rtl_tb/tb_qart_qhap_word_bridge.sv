@@ -44,9 +44,11 @@ module tb_qart_qhap_word_bridge;
   @(posedge clk);@(negedge clk);host_valid=0;
   @(posedge clk);#1;if(!overflow_fault)$fatal(1,"TVALID withdrawal not faulted");
 
-  // Simultaneous clear plus a continuing violation must remain faulted.
-  @(negedge clk);clear_fault=1;
-  @(posedge clk);#1;if(!overflow_fault)$fatal(1,"violation did not win over clear");
+  // Simultaneous clear plus a continuing *live* violation must remain faulted.
+  // Re-assert TVALID with mutated payload while the remembered stalled beat
+  // is still outstanding; clear_fault must not mask that active violation.
+  @(negedge clk);host_valid=1;host_data=32'h21;clear_fault=1;
+  @(posedge clk);#1;if(!overflow_fault)$fatal(1,"live violation did not win over clear");
   $display("QART_QHAP_WORD_BRIDGE_PASS");$finish;
  end
 endmodule
