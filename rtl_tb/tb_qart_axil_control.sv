@@ -28,6 +28,45 @@ module tb_qart_axil_control;
    if(bresp!==0)$fatal(1,"write SLVERR addr=%h",a);
   end
  endtask
+ task wr_split(input[5:0]a,input[31:0]d,input[3:0]s,input bit addr_first);
+  begin
+   if(addr_first) begin
+    @(negedge clk);awaddr=a;awvalid=1;
+    while(!awready) @(negedge clk);
+    @(negedge clk);awvalid=0;
+    repeat(2) @(negedge clk);
+    wdata=d;wstrb=s;wvalid=1;
+    while(!wready) @(negedge clk);
+    @(negedge clk);wvalid=0;
+   end else begin
+    @(negedge clk);wdata=d;wstrb=s;wvalid=1;
+    while(!wready) @(negedge clk);
+    @(negedge clk);wvalid=0;
+    repeat(2) @(negedge clk);
+    awaddr=a;awvalid=1;
+    while(!awready) @(negedge clk);
+    @(negedge clk);awvalid=0;
+   end
+   while(!bvalid) @(negedge clk);
+   if(bresp!==0)$fatal(1,"split write SLVERR addr=%h",a);
+  end
+ endtask
+ task wr_err(input[5:0]a);
+  begin
+   @(negedge clk);awaddr=a;wdata=32'hdeadbeef;wstrb=4'hf;awvalid=1;wvalid=1;
+   while(!(awready&&wready)) @(negedge clk);
+   @(negedge clk);awvalid=0;wvalid=0;
+   while(!bvalid) @(negedge clk);
+   if(bresp!==2'b10)$fatal(1,"unmapped write did not SLVERR");
+  end
+ endtask
+ task rd_err(input[5:0]a);
+  begin
+   @(negedge clk);araddr=a;arvalid=1;while(!arready)@(negedge clk);
+   @(negedge clk);arvalid=0;while(!rvalid)@(negedge clk);
+   if(rresp!==2'b10)$fatal(1,"unmapped read did not SLVERR");
+  end
+ endtask
  task rd(input[5:0]a,input[31:0]expected_data);
   begin
    @(negedge clk);araddr=a;arvalid=1;
@@ -55,6 +94,19 @@ module tb_qart_axil_control;
   rd(6'h14,32'h89abcdef);
   wr(6'h08,32'h0,4'h1);
   if(arm)$fatal(1,"arm did not clear");
+  // Independent AW/W channels: both legal orderings.
+  wr_split(6'h08,32'h1,4'h1,1'b1);
+  if(!arm)$fatal(1,"AW-before-W failed");
+  wr_split(6'h08,32'h0,4'h1,1'b0);
+  if(arm)$fatal(1,"W-before-AW failed");
+  // Byte strobes must update only selected RESYNC_VALUE bytes.
+  wr(6'h14,32'h11223344,4'hf);
+  wr(6'h14,32'haa00cc00,4'b1010);
+  if(resync_value!==32'haa22cc44)$fatal(1,"WSTRB partial write mismatch %h",resync_value);
+  rd(6'h14,32'haa22cc44);
+  // Unmapped addresses are fail-closed at the bus boundary.
+  wr_err(6'h18);
+  rd_err(6'h18);
   $display("QART_AXIL_CONTROL_PASS");
   $finish;
  end
