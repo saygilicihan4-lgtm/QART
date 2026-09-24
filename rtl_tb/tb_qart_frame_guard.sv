@@ -27,11 +27,11 @@ module tb_qart_frame_guard;
     case(i%8)
       0: crc_ok=0;
       1: seq=32'd2+(i/8);
-      2: channel=16'd64+(i%128);
-      3: action=16'd3+(i%8);
-      4: amplitude=16'h8000|(i&16'h7fff);
+      2: channel=16'(64+(i%128));
+      3: action=16'(3+(i%8));
+      4: amplitude=16'(16'h8000 | (i & 32'h00007fff));
       5: duration=0;
-      6: kind=8'd2+(i%3);
+      6: kind=8'(2+(i%3));
       7: magic=32'h51484150 ^ (32'h1 << (i%32));
     endcase
     check(0);
