@@ -35,3 +35,8 @@ The PS/DMA block design is not yet physically built or measured. The AXI interfa
 8. Only after those gates pass, connect DAC/ADC or I/Q loopback.
 
 No deterministic-latency or hardware-verified claim is permitted before the physical measurements.
+
+
+## AXI4-Stream backpressure contract
+
+`TVALID && !TREADY` is normal backpressure and MUST NOT raise a transport fault. While stalled, the producer must keep `TVALID`, `TDATA`, `TKEEP`, and `TLAST` stable until handshake. Withdrawal of `TVALID` or mutation of the stalled beat is a sticky transport/protocol fault; explicit `clear_fault` is required. A new violation wins over a simultaneous clear.
