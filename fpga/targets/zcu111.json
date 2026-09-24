@@ -1,0 +1,14 @@
+{
+  "board": "AMD/Xilinx ZCU111 Evaluation Board",
+  "board_part": "xilinx.com:zcu111:part0:1.4",
+  "device_part": "xczu28dr-ffvg1517-2-e",
+  "family": "Zynq UltraScale+ RFSoC",
+  "device": "XCZU28DR",
+  "qhap_reference_clock_mhz": 100,
+  "qhap_reference_period_ns": 10.0,
+  "board_clock_net": "CLK_100",
+  "board_clock_p_pin": "AM15",
+  "board_clock_n_pin": "AN15",
+  "board_clock_io_standard": "LVDS",
+  "status": "device-target-selected-not-board-verified"
+}
