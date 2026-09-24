@@ -5,12 +5,16 @@ if {![info exists ::env(QART_PART)] || $::env(QART_PART) eq ""} {
   error "QART_PART must name the exact AMD/Xilinx device part before vendor implementation"
 }
 set part $::env(QART_PART)
-set top qart_qhap_fpga_top
+set top [expr {[info exists ::env(QART_TOP)] && $::env(QART_TOP) ne "" ? $::env(QART_TOP) : "qart_qhap_fpga_top"}]
 set outdir [file normalize "build/vivado"]
 file mkdir $outdir
 
-read_verilog -sv [list   rtl/qart_reset_sync.sv   rtl/qart_crc32_ieee.sv   rtl/qart_qhap_crc_stream.sv   rtl/qart_frame_guard.sv   rtl/qart_axis_frame_rx.sv   rtl/qart_sequence_guard.sv   rtl/qart_watchdog.sv   rtl/qart_fail_closed_ingress.sv   rtl/qart_qhap_ingress_top.sv   fpga/rtl/qart_qhap_fpga_top.sv ]
-read_xdc fpga/constraints/qart_qhap_timing.xdc
+read_verilog -sv [list   rtl/qart_reset_sync.sv   rtl/qart_crc32_ieee.sv   rtl/qart_qhap_crc_stream.sv   rtl/qart_frame_guard.sv   rtl/qart_axis_frame_rx.sv   rtl/qart_sequence_guard.sv   rtl/qart_watchdog.sv   rtl/qart_fail_closed_ingress.sv   rtl/qart_qhap_ingress_top.sv   fpga/rtl/qart_qhap_fpga_top.sv   fpga/rtl/qart_zcu111_top.sv ]
+if {$top eq "qart_zcu111_top"} {
+  read_xdc fpga/constraints/zcu111_board.xdc
+} else {
+  read_xdc fpga/constraints/qart_qhap_timing.xdc
+}
 
 synth_design -mode out_of_context -top $top -part $part
 write_checkpoint -force $outdir/post_synth.dcp
