@@ -21,11 +21,15 @@ jobs:
         run: sudo apt-get install -y yosys
       - name: Generic synthesis gate
         run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_fpga_top.sv; hierarchy -check -top qart_qhap_fpga_top; proc; opt; check; stat"
+      - name: Xilinx UltraScale+ technology-map synthesis
+        run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_fpga_top.sv; synth_xilinx -family xcup -top qart_qhap_fpga_top; stat"
       - name: Vendor flow contract check
         run: |
           test -s fpga/vivado/build.tcl
           test -s fpga/constraints/qart_qhap_timing.xdc
           grep -q "QART_PART" fpga/vivado/build.tcl
+          grep -q "out_of_context" fpga/vivado/build.tcl
+          python -c 'import json; p=json.load(open("fpga/targets/zcu111.json")); assert p["device_part"]=="xczu28dr-ffvg1517-2-e"; assert p["qhap_reference_clock_mhz"]==100; assert p["board_clock_p_pin"]=="AM15"; assert p["board_clock_n_pin"]=="AN15"; print("ZCU111 target manifest contract PASS")'
           grep -q "report_timing_summary" fpga/vivado/build.tcl
           grep -q "WNS" fpga/vivado/build.tcl
           grep -q "create_clock" fpga/constraints/qart_qhap_timing.xdc
