@@ -38,6 +38,10 @@ jobs:
           grep -q "AM15" fpga/constraints/zcu111_board.xdc
           grep -q "AN15" fpga/constraints/zcu111_board.xdc
           grep -q "IBUFDS" fpga/rtl/qart_zcu111_top.sv
+          grep -q "xilinx.com:interface:axis:1.0 S_AXIS TDATA" fpga/rtl/qart_zcu111_top.sv
+          grep -q "S_AXIS TKEEP" fpga/rtl/qart_zcu111_top.sv
+          grep -q "S_AXIS TLAST" fpga/rtl/qart_zcu111_top.sv
+          grep -q "AXI DMA" fpga/TRANSPORT.md
           grep -q "QART_TOP" fpga/vivado/build_zcu111.sh
       - name: Python-golden host-to-QHAP end-to-end simulation
         run: |
