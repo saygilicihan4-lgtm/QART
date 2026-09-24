@@ -10,20 +10,21 @@ module qart_zcu111_top #(
  input  logic        resync,
  input  logic [31:0] resync_value,
 
- input  logic [31:0] s_axis_tdata,
- input  logic [3:0]  s_axis_tkeep,
- input  logic        s_axis_tvalid,
- output logic        s_axis_tready,
- input  logic        s_axis_tlast,
+ // Logical PS/host producer boundary. A later PS block design supplies these signals.
+ input  logic        host_valid,
+ output logic        host_ready,
+ input  logic [31:0] host_data,
+ input  logic [3:0]  host_keep,
+ input  logic        host_last,
 
  output logic        permit,
  output logic        fault,
  output logic        safe_noop,
+ output logic        transport_fault,
  output logic [31:0] expected_seq
 );
  logic qhap_clk;
 
- // ZCU111 CLK_100 differential board clock.
  IBUFDS #(
   .DIFF_TERM("TRUE"),
   .IBUF_LOW_PWR("FALSE")
@@ -33,21 +34,22 @@ module qart_zcu111_top #(
   .O(qhap_clk)
  );
 
- qart_qhap_fpga_top #(.WATCHDOG_CYCLES(WATCHDOG_CYCLES)) core(
+ qart_qhap_host_fpga_top #(.WATCHDOG_CYCLES(WATCHDOG_CYCLES)) core(
   .qhap_clk(qhap_clk),
   .qhap_resetn(qhap_resetn),
   .arm(arm),
   .clear_fault(clear_fault),
   .resync(resync),
   .resync_value(resync_value),
-  .s_axis_tdata(s_axis_tdata),
-  .s_axis_tkeep(s_axis_tkeep),
-  .s_axis_tvalid(s_axis_tvalid),
-  .s_axis_tready(s_axis_tready),
-  .s_axis_tlast(s_axis_tlast),
+  .host_valid(host_valid),
+  .host_ready(host_ready),
+  .host_data(host_data),
+  .host_keep(host_keep),
+  .host_last(host_last),
   .permit(permit),
   .fault(fault),
   .safe_noop(safe_noop),
+  .transport_fault(transport_fault),
   .expected_seq(expected_seq)
  );
 endmodule
