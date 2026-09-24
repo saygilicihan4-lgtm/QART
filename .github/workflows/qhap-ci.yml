@@ -16,13 +16,13 @@ jobs:
       - name: Install Verilator
         run: sudo apt-get update && sudo apt-get install -y verilator
       - name: RTL lint
-        run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv rtl/qart_safety_assertions.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_fpga_top.sv
+        run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv rtl/qart_safety_assertions.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_fpga_top.sv fpga/rtl/qart_qhap_host_fpga_top.sv
       - name: Install Yosys
         run: sudo apt-get install -y yosys
       - name: Generic synthesis gate
-        run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_fpga_top.sv; hierarchy -check -top qart_qhap_fpga_top; proc; opt; check; stat"
+        run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_host_fpga_top.sv; hierarchy -check -top qart_qhap_host_fpga_top; proc; opt; check; stat"
       - name: Xilinx UltraScale+ technology-map synthesis
-        run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_fpga_top.sv; synth_xilinx -family xcup -top qart_qhap_fpga_top; stat"
+        run: yosys -p "read_verilog -sv rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_host_fpga_top.sv; synth_xilinx -family xcup -top qart_qhap_host_fpga_top; stat"
       - name: Vendor flow contract check
         run: |
           test -s fpga/vivado/build.tcl
@@ -39,6 +39,12 @@ jobs:
           grep -q "AN15" fpga/constraints/zcu111_board.xdc
           grep -q "IBUFDS" fpga/rtl/qart_zcu111_top.sv
           grep -q "QART_TOP" fpga/vivado/build_zcu111.sh
+      - name: Python-golden host-to-QHAP end-to-end simulation
+        run: |
+          PYTHONPATH=. python tests/generate_qhap_e2e.py
+          rm -rf obj_dir
+          verilator --binary --assert -Wall -Wno-fatal -sv --top-module tb_qart_qhap_host_fpga_top rtl/qart_reset_sync.sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_axis_frame_rx.sv rtl/qart_frame_guard.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv fpga/rtl/qart_qhap_word_bridge.sv fpga/rtl/qart_qhap_host_fpga_top.sv rtl_tb/tb_qart_qhap_host_fpga_top.sv
+          ./obj_dir/Vtb_qart_qhap_host_fpga_top
       - name: Host-to-QHAP bridge backpressure simulation
         run: |
           rm -rf obj_dir
