@@ -9,7 +9,7 @@ set top [expr {[info exists ::env(QART_TOP)] && $::env(QART_TOP) ne "" ? $::env(
 set outdir [file normalize "build/vivado"]
 file mkdir $outdir
 
-read_verilog -sv [list   rtl/qart_reset_sync.sv   rtl/qart_crc32_ieee.sv   rtl/qart_qhap_crc_stream.sv   rtl/qart_frame_guard.sv   rtl/qart_axis_frame_rx.sv   rtl/qart_sequence_guard.sv   rtl/qart_watchdog.sv   rtl/qart_fail_closed_ingress.sv   rtl/qart_qhap_ingress_top.sv   fpga/rtl/qart_qhap_fpga_top.sv   fpga/rtl/qart_zcu111_top.sv ]
+read_verilog -sv [list   rtl/qart_reset_sync.sv   rtl/qart_crc32_ieee.sv   rtl/qart_qhap_crc_stream.sv   rtl/qart_frame_guard.sv   rtl/qart_axis_frame_rx.sv   rtl/qart_sequence_guard.sv   rtl/qart_watchdog.sv   rtl/qart_fail_closed_ingress.sv   rtl/qart_qhap_ingress_top.sv   fpga/rtl/qart_qhap_word_bridge.sv   fpga/rtl/qart_qhap_fpga_top.sv   fpga/rtl/qart_qhap_host_fpga_top.sv   fpga/rtl/qart_zcu111_top.sv ]
 if {$top eq "qart_zcu111_top"} {
   read_xdc fpga/constraints/zcu111_board.xdc
 } else {
