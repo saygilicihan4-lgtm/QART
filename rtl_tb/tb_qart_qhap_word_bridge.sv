@@ -29,9 +29,12 @@ module tb_qart_qhap_word_bridge;
   @(posedge clk);@(negedge clk);host_data=32'h3;
   @(posedge clk);#1;if(!overflow_fault)$fatal(1,"stalled payload mutation not faulted");
 
-  // Explicit clear recovers.
+  // Stop the violating transaction, then explicit operator clear recovers.
+  // Clearing while the source is still violating must not mask the violation.
+  @(negedge clk);host_valid=0;
+  @(posedge clk);
   @(negedge clk);clear_fault=1;@(posedge clk);@(negedge clk);clear_fault=0;
-  @(posedge clk);#1;if(overflow_fault)$fatal(1,"clear failed");
+  @(posedge clk);#1;if(overflow_fault)$fatal(1,"clear failed after violation ceased");
 
   // TVALID withdrawal before handshake is a violation.
   reset_bridge();
