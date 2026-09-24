@@ -17,6 +17,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y verilator
       - name: RTL lint
         run: verilator --lint-only --assert -Wall -Wno-fatal -sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv rtl/qart_safety_assertions.sv
+      - name: Install Yosys
+        run: sudo apt-get install -y yosys
+      - name: Generic synthesis gate
+        run: yosys -p "read_verilog -sv rtl/qart_crc32_ieee.sv rtl/qart_qhap_crc_stream.sv rtl/qart_frame_guard.sv rtl/qart_axis_frame_rx.sv rtl/qart_sequence_guard.sv rtl/qart_watchdog.sv rtl/qart_fail_closed_ingress.sv rtl/qart_qhap_ingress_top.sv; hierarchy -check -top qart_qhap_ingress_top; proc; opt; check; stat"
       - name: QHAP 10k protocol fault campaign
         run: PYTHONPATH=. python tests/qhap_fault_campaign.py
       - name: Generate Python-to-RTL QHAP frame
