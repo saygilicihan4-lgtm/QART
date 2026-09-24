@@ -27,7 +27,8 @@ module qart_zcu111_top #(
  output logic        fault,
  output logic        safe_noop,
  output logic        transport_fault,
- output logic [31:0] expected_seq
+ output logic [31:0] expected_seq,
+ output logic [31:0] status_flags
 );
  logic qhap_clk;
 
@@ -56,6 +57,7 @@ module qart_zcu111_top #(
   .fault(fault),
   .safe_noop(safe_noop),
   .transport_fault(transport_fault),
-  .expected_seq(expected_seq)
+  .expected_seq(expected_seq),
+  .status_flags(status_flags)
  );
 endmodule
