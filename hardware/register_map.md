@@ -1,23 +1,16 @@
-# QART FPGA register map v0.1
+# QART FPGA register map v0.2
 
-Proposed AXI4-Lite control/status map. Not yet synthesized.
+Implemented AXI4-Lite control/status ABI for first ZCU111 PS bring-up.
 
-| Offset | Register | Access |
-|---|---|---|
-| 0x00 | ID = 0x51415254 ("QART") | RO |
-| 0x04 | VERSION = 0x00010000 | RO |
-| 0x08 | CONTROL: bit0 enable, bit1 soft-reset | RW |
-| 0x0C | STATUS: bit0 ready, bit1 fault, bit2 watchdog | RO |
-| 0x10 | LAST_RX_SEQ | RO |
-| 0x14 | LAST_TX_SEQ | RO |
-| 0x18 | FAULT_CODE | RO |
-| 0x1C | FAULT_COUNT | RO |
-| 0x20 | MAX_CHANNEL | RW bounded <=63 |
-| 0x24 | MAX_AMPLITUDE_Q15 | RW bounded <=0x7FFF |
-| 0x28 | MAX_DURATION_TICKS | RW |
-| 0x2C | WATCHDOG_TICKS | RW |
-| 0x30 | CRC_ERROR_COUNT | RO |
-| 0x34 | SEQ_ERROR_COUNT | RO |
-| 0x38 | SAFETY_REJECT_COUNT | RO |
+| Offset | Register | Access | Meaning |
+|---|---|---|---|
+| 0x00 | ID | RO | `0x51415254` ("QART") |
+| 0x04 | VERSION | RO | `0x00020000` |
+| 0x08 | CONTROL | RW/W1P | bit0 `arm`; bit1 `clear_fault` one-cycle pulse; bit2 `resync` one-cycle pulse |
+| 0x0C | STATUS | RO | hardware `status_flags` ABI |
+| 0x10 | EXPECTED_SEQ | RO | next sequence accepted by QHAP sequence guard |
+| 0x14 | RESYNC_VALUE | RW | sequence loaded when CONTROL.resync is pulsed |
 
-Configuration writes must themselves pass a bounded configuration gate.
+Unmapped reads/writes return AXI `SLVERR`. Byte write strobes are honored. `arm` is persistent; `clear_fault` and `resync` are pulses and cannot remain asserted from software.
+
+This v0.2 map replaces the earlier proposed-only v0.1 map. It does not expose arbitrary pulse parameters; physical command parameters remain inside validated QHAP frames.
