@@ -24,7 +24,11 @@ module qart_qhap_word_bridge(
    // clear_fault is the explicit operator recovery boundary. It abandons
    // the remembered malformed stalled transaction. A *new* live stalled
    // transaction can be captured below on a later cycle.
-   if(clear_fault) begin
+   // A live protocol violation has priority over operator clear.
+   // If the old malformed stall has ceased, clear_fault can recover.
+   if(violation && host_valid) begin
+    overflow_fault<=1;
+   end else if(clear_fault) begin
     overflow_fault<=0;
     stall_active<=0;
    end else if(violation) begin
