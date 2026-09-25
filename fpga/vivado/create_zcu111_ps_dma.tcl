@@ -48,9 +48,23 @@ save_bd_design
 puts "QART_PS_DMA_TRANSPORT_BD_PASS"
 
 
-# QHAP AXI-Lite control/status bank. This IP is expected to be packaged from
-# fpga/rtl/qart_axil_control.sv or instantiated in the generated HDL wrapper.
-# The PS control path and DMA control path share the PS AXI master; QHAP command
-# data remains on the independent AXI-Stream path above.
-puts "QART_CONTROL_PLANE_REQUIRED=qart_axil_control"
+# Export a second PS control-plane master interface for the QHAP AXI-Lite
+# register bank. The generated HDL wrapper connects this interface to
+# qart_axil_control through the qhap clock-domain boundary. Keeping this
+# interface explicit avoids an unsafe direct PS-clock -> qhap-clock crossing.
+set qhap_axil [make_bd_intf_pins_external [get_bd_intf_pins $ps/M_AXI_HPM1_FPD]]
+set_property name QHAP_S_AXI_CTRL $qhap_axil
+
+# The QHAP register bank itself remains RTL-owned (qart_axil_control.sv).
+# A vendor AXI clock converter must sit between this PS-domain interface and
+# the qhap_clk domain before board programming. This script deliberately
+# fails validation if the PS preset does not expose HPM1_FPD.
+if {[llength [get_bd_intf_ports QHAP_S_AXI_CTRL]] != 1} {
+  error "QART: QHAP AXI-Lite control-plane export missing"
+}
+
+validate_bd_design
+save_bd_design
+puts "QART_CONTROL_PLANE_EXPORTED=QHAP_S_AXI_CTRL"
+puts "QART_CONTROL_PLANE_RTL=qart_axil_control"
 puts "QART_PS_DMA_TRANSPORT_BD_PASS"
